@@ -1,0 +1,4 @@
+API = "http://127.0.0.1:8000/completion"
+FILE = "/path/to/some/magic/json/file.json"
+SITE = "https://some.magic.ai.chat.site"
+SYSTEM_PROMPT = "/path/to/your/system-prompt.txt"
