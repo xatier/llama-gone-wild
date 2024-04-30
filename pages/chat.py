@@ -28,6 +28,10 @@ def push(role: str, content: str) -> None:
     st.session_state["messages"].append({"role": role, "content": content})
 
 
+def pop() -> None:
+    st.session_state["messages"].pop()
+
+
 def generate_response():
     response = api.chat(
         messages=st.session_state["messages"], setting=st.session_state["char_setting"]
@@ -60,10 +64,30 @@ if "started" in st.session_state:
         )
 
 st.session_state["started"] = True
-if prompt := st.chat_input(placeholder=f'{USER["avatar"]}: Your message'):
+
+# hack: use internal `st._bottom` container to ensure they are at the bottom
+# of the page
+# ref: https://github.com/streamlit/streamlit/issues/8198
+(
+    col1,
+    col2,
+    col3,
+) = st._bottom.empty().columns([0.8, 0.1, 0.1])
+
+if prompt := col1.chat_input(placeholder=f'{USER["avatar"]}: Your message'):
     reply(USER["role"], USER["avatar"], prompt)
     push(USER["role"], prompt)
     bot_reply()
+
+if col2.button("💦", help="continue"):
+    bot_reply()
+
+if col3.button("🔙", help="regenerate"):
+    pop()
+    bot_reply()
+    # reload the page to get a fresh print of history
+    st.rerun()
+
 
 metrics = api.get_metrics()
 st.caption(

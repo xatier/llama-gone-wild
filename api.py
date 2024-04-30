@@ -72,7 +72,8 @@ def chat(messages: list, setting: str):
         for m in messages
     )
 
-    print(f"{messages=}")
+    print(f"MESSAGE={messages}")
+    print(f"HISTORY={history}")
 
     system_prompt = (
         load_system()
