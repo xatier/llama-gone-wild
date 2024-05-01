@@ -92,7 +92,9 @@ if col3.button("🔙", help="regenerate"):
 metrics = api.get_metrics()
 st.caption(
     f"""
-    {metrics["tokens_predicted"]} tokens predicted, {metrics["tokens_cached"]} cached
+    {metrics["tokens_evaluated"]} tokens evaluated,
+    {metrics["tokens_predicted"]} tokens predicted,
+    {metrics["tokens_cached"]} cached,
     {metrics["timings"]["predicted_per_token_ms"]:.0f}ms per token
     {metrics["timings"]["predicted_per_second"]:.3f} tokens per second
 """
