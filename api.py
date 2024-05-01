@@ -38,6 +38,7 @@ params = {
     "mirostat_tau": 5,
     "n_predict": 160,
     "n_probs": 0,
+    "n_keep": -1,
     "penalize_nl": True,
     "presence_penalty": 0,
     "prompt": "{prompt}\n\n{history}\n{char}:",
