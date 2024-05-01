@@ -3,6 +3,7 @@ import random
 import textwrap
 from typing import Any, Optional
 
+import api
 import conf
 import streamlit as st
 
@@ -69,12 +70,16 @@ def search(keyword: str, db: dict) -> Optional[dict]:
 
 
 def character_card() -> None:
-    c = st.session_state["char"]
-    st.subheader(c["name"])
-    st.write(f'URL: {conf.SITE}/characters/details?characterId={c["_id"]}')
-    st.markdown(f'```text\nTags: {[t["title"] for t in c["tags"]]}\n```')
-    st.image(c["imageUrl"])
-    st.markdown(st.session_state["char_setting"])
+    if not conf.HOMEBREW:
+        c = st.session_state["char"]
+        st.subheader(c["name"])
+        st.write(f'URL: {conf.SITE}/characters/details?characterId={c["_id"]}')
+        st.markdown(f'```text\nTags: {[t["title"] for t in c["tags"]]}\n```')
+        st.image(c["imageUrl"])
+        st.markdown(st.session_state["char_setting"])
+    else:
+        st.subheader("Homebrew mode")
+        st.markdown(api.load_homebrew())
 
 
 st.title("llama gone wild")

@@ -58,6 +58,11 @@ def load_system() -> str:
         return "".join(f.readlines())
 
 
+def load_homebrew() -> str:
+    with open(conf.CUSTOMIZED) as f:
+        return "".join(f.readlines())
+
+
 def get_metrics():
     return metrics
 
@@ -74,6 +79,9 @@ def chat(messages: list, setting: str):
 
     print(f"MESSAGE={messages}")
     print(f"HISTORY={history}")
+
+    if conf.HOMEBREW:
+        setting = load_homebrew()
 
     system_prompt = (
         load_system()
