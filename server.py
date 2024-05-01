@@ -85,6 +85,9 @@ def character_card() -> None:
 st.title("llama gone wild")
 load()
 
+if st.button("Toggle homebrew mode"):
+    conf.HOMEBREW = not conf.HOMEBREW
+
 search_term = st.text_input(f"Character search ({len(db)} characters loaded)", "tits")
 c = st.session_state.get("char", search(search_term, db))
 
