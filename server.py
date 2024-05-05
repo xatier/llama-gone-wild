@@ -88,7 +88,10 @@ load()
 if st.button("Toggle homebrew mode"):
     conf.HOMEBREW = not conf.HOMEBREW
 
-search_term = st.text_input(f"Character search ({len(db)} characters loaded)", "tits")
+search_term = st.text_input(
+    f"Character search ({len(db)} characters loaded)",
+    st.session_state.get("search_term", "tits"),
+)
 c = st.session_state.get("char", search(search_term, db))
 
 if st.button("Refresh") or search_term != st.session_state.get("search_term", ""):
