@@ -1,5 +1,6 @@
 import json
 import pprint
+from typing import Any, Generator
 
 import conf
 import httpx
@@ -10,7 +11,7 @@ headers: dict[str, str] = {
     "Accept": "application/json",
 }
 
-metrics = {}
+metrics: dict[str, Any] = {}
 
 char = "惠惠"
 user = "Master"
@@ -64,16 +65,16 @@ def load_homebrew() -> str:
         return "".join(f.readlines())
 
 
-def get_metrics():
+def get_metrics() -> dict[str, Any]:
     return metrics
 
 
-def chat(messages: list, setting: str):
+def chat(messages: list, setting: str) -> Generator[Any, None, None]:
     p = params.copy()
 
     chat_history_template = "{name}: {message}"
 
-    history = "\n".join(
+    history: str = "\n".join(
         chat_history_template.format(name=m["role"], message=m["content"])
         for m in messages
     )
@@ -84,24 +85,30 @@ def chat(messages: list, setting: str):
     if conf.HOMEBREW:
         setting = load_homebrew()
 
-    system_prompt = (
+    system_prompt: str = (
         load_system()
         .replace("{{{CHARACTER}}}", setting)
         .replace("{{char}}", char)
         .replace("{{user}}", user)
     )
-    p["prompt"] = p["prompt"].format(prompt=system_prompt, history=history, char=char)
+    p["prompt"] = p["prompt"].format(
+        prompt=system_prompt, history=history, char=char
+    )
 
     # ref: ollama/ollama-python/ollama/_client.py
-    with httpx.stream("POST", conf.API, headers=headers, json=p, timeout=None) as r:
+    with httpx.stream(
+        "POST", conf.API, headers=headers, json=p, timeout=None
+    ) as r:
         try:
             r.raise_for_status()
         except httpx.HTTPStatusError as e:
             e.response.read()
-            raise httpx.ResponseError(e.response.text, e.response.status_code) from None
+            raise httpx.ResponseError(
+                e.response.text, e.response.status_code
+            ) from None
 
+        prefix = "data: "
         for line in r.iter_lines():
-            prefix = "data: "
             if not line.startswith(prefix):
                 continue
             # trim prefix

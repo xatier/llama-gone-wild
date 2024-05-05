@@ -13,7 +13,7 @@ db: dict[Any, Any] = {}
 
 def load() -> None:
     with open(conf.FILE) as f:
-        lines = f.readlines()
+        lines: list[str] = f.readlines()
 
     j = json.loads("".join(lines))
 
@@ -36,7 +36,9 @@ def load() -> None:
 def add(c: dict, db: dict) -> None:
     if c["_id"] not in db:
         c["description"] = (
-            c["description"].replace("\r\n", ". ").replace(c["name"], "{{char}}")
+            c["description"]
+            .replace("\r\n", ". ")
+            .replace(c["name"], "{{char}}")
         )
         c["scenario"] = (
             c["scenario"].replace("\r\n", ". ").replace(c["name"], "{{char}}")
@@ -51,22 +53,22 @@ def search(keyword: str, db: dict) -> Optional[dict]:
         i = c["_id"]
         tags = [t["title"] for t in c["tags"]]
 
-        if i not in results and "Male" not in tags:
-            if (
+        if (
+            i not in results
+            and "Male" not in tags
+            and (
                 keyword in c["name"].lower()
                 or keyword in c["description"].lower()
                 or keyword in c["scenario"].lower()
                 or keyword in " ".join(c["traits"]).lower()
                 or keyword in " ".join(tags).lower()
-            ):
-                results[i] = c
+            )
+        ):
+            results[i] = c
 
     st.session_state["char_search_results"] = results
 
-    if len(results) == 0:
-        return None
-
-    return random.choice(list(results.values()))
+    return random.choice(list(results.values())) if results else None
 
 
 def character_card() -> None:
@@ -94,7 +96,9 @@ search_term = st.text_input(
 )
 c = st.session_state.get("char", search(search_term, db))
 
-if st.button("Refresh") or search_term != st.session_state.get("search_term", ""):
+if st.button("Refresh") or search_term != st.session_state.get(
+    "search_term", ""
+):
     c = search(search_term, db)
 
 st.write(f'found {len(st.session_state["char_search_results"])} results')

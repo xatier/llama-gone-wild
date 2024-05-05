@@ -1,3 +1,4 @@
+from typing import Any, Callable, Generator, Union
 import api
 import server
 import streamlit as st
@@ -5,8 +6,8 @@ import streamlit as st
 
 st.title("llama gone wild")
 
-USER = api.USER
-BOT = api.BOT
+USER: dict[str, str] = api.USER
+BOT: dict[str, str] = api.BOT
 
 # go back if character selected or not initialized
 if "char" not in st.session_state or "initialized" not in st.session_state:
@@ -16,7 +17,9 @@ if "char" not in st.session_state or "initialized" not in st.session_state:
 server.character_card()
 
 
-def reply(role: str, avatar: str, content, stream: bool = False) -> None:
+def reply(
+    role: str, avatar: str, content: Union[str, Callable], stream: bool = False
+) -> None:
     with st.chat_message(role, avatar=avatar):
         if stream:
             st.write_stream(content)
@@ -32,12 +35,13 @@ def pop() -> None:
     st.session_state["messages"].pop()
 
 
-def generate_response():
-    response = api.chat(
-        messages=st.session_state["messages"], setting=st.session_state["char_setting"]
+def generate_response() -> Generator[str, None, None]:
+    response: Generator[Any, None, None] = api.chat(
+        messages=st.session_state["messages"],
+        setting=st.session_state["char_setting"],
     )
     for partial_resp in response:
-        token = partial_resp["content"]
+        token: str = partial_resp["content"]
         st.session_state["full_message"] += token
         yield token
 
@@ -72,7 +76,9 @@ st.session_state["started"] = True
     col1,
     col2,
     col3,
-) = st._bottom.empty().columns([0.8, 0.1, 0.1])
+) = st._bottom.empty().columns(  # type: ignore[reportPrivateUsage]
+    [0.8, 0.1, 0.1]
+)
 
 if prompt := col1.chat_input(placeholder=f'{USER["avatar"]}: Your message'):
     reply(USER["role"], USER["avatar"], prompt)
@@ -89,7 +95,7 @@ if col3.button("🔙", help="regenerate"):
     st.rerun()
 
 
-metrics = api.get_metrics()
+metrics: dict[str, Any] = api.get_metrics()
 st.caption(
     f"""
     {metrics["tokens_evaluated"]} tokens evaluated,
