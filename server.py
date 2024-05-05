@@ -11,39 +11,13 @@ import streamlit as st
 db: dict[Any, Any] = {}
 
 
-def load() -> None:
-    with open(conf.FILE) as f:
+def load_db() -> dict[Any, Any]:
+    with open(conf.DB_FILE) as f:
         lines: list[str] = f.readlines()
 
-    j = json.loads("".join(lines))
-
-    # ['tag', 'featuredCharacters', 'topCharacters', 'newCharacters', 'relatedTags', 'charactersByRelatedTagId'])
-    for p in j:
-        for c in p["featuredCharacters"]:
-            add(c, db)
-
-        for c in p["topCharacters"]:
-            add(c, db)
-
-        for c in p["newCharacters"]:
-            add(c, db)
-
-        for tag in p["charactersByRelatedTagId"]:
-            for c in p["charactersByRelatedTagId"][tag]:
-                add(c, db)
-
-
-def add(c: dict, db: dict) -> None:
-    if c["_id"] not in db:
-        c["description"] = (
-            c["description"]
-            .replace("\r\n", ". ")
-            .replace(c["name"], "{{char}}")
-        )
-        c["scenario"] = (
-            c["scenario"].replace("\r\n", ". ").replace(c["name"], "{{char}}")
-        )
-        db[c["_id"]] = c
+    db = json.loads("".join(lines))
+    print(f"{len(db)} characters loaded")
+    return db
 
 
 def search(keyword: str, db: dict) -> Optional[dict]:
@@ -85,7 +59,7 @@ def character_card() -> None:
 
 
 st.title("llama gone wild")
-load()
+db = load_db()
 
 if st.button("Toggle homebrew mode"):
     conf.HOMEBREW = not conf.HOMEBREW
