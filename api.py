@@ -25,6 +25,8 @@ BOT: dict[str, str] = {
     "role": char,
 }
 
+IM_MODE = False
+
 params = {
     "api_key": "",
     "cache_prompt": True,
@@ -37,19 +39,23 @@ params = {
     "mirostat": 0,
     "mirostat_eta": 0.1,
     "mirostat_tau": 5,
-    "n_predict": 160,
+    "n_predict": 200,
     "n_probs": 0,
     "n_keep": -1,
     "penalize_nl": True,
     "presence_penalty": 0,
-    "prompt": "{prompt}\n\n{history}\n{char}:",
+    "prompt": (
+        "{prompt}\n\n{history}\n<|im_start|>{char}:"
+        if IM_MODE
+        else "<s>{prompt}\n\n{history}\n{char}:"
+    ),
     "repeat_last_n": 256,
     "repeat_penalty": 1.18,
-    "stop": ["</s>", f"{char}:", f"{user}:"],
+    "stop": ["</s>", f"{char}:", f"{user}:", "<|im_end|>"],
     "stream": True,
     "temperature": 0.75,
     "tfs_z": 1,
-    "top_k": 80,
+    "top_k": 200,
     "top_p": 0.95,
     "typical_p": 1,
 }
@@ -69,13 +75,21 @@ def get_metrics() -> dict[str, Any]:
     return metrics
 
 
+# tokenizer.chat_template
+def apply_chat_template(name: str, message: str) -> str:
+    if IM_MODE:
+        return f"<|im_start|>{name}: {message}<|im_end|>"
+
+    if name == USER["role"]:
+        return f"[INST] {name}: {message} [/INST]"
+    return f"{name}: {message} </s>"
+
+
 def chat(messages: list, setting: str) -> Generator[Any, None, None]:
     p = params.copy()
 
-    chat_history_template = "{name}: {message}"
-
     history: str = "\n".join(
-        chat_history_template.format(name=m["role"], message=m["content"])
+        apply_chat_template(name=m["role"], message=m["content"])
         for m in messages
     )
 
@@ -90,6 +104,8 @@ def chat(messages: list, setting: str) -> Generator[Any, None, None]:
         .replace("{{{CHARACTER}}}", setting)
         .replace("{{char}}", char)
         .replace("{{user}}", user)
+        .replace("[INST]", "<|im_start|>system\n\n" if IM_MODE else "[INST]")
+        .replace("[/INST]", "<|im_end|>" if IM_MODE else "[/INST]")
     )
     p["prompt"] = p["prompt"].format(
         prompt=system_prompt, history=history, char=char

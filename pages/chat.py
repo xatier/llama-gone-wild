@@ -53,14 +53,13 @@ def bot_reply() -> None:
 
 
 # no history, or the bot hasn't finished the reply yet (due to page changes)
-if "messages" not in st.session_state or len(st.session_state["messages"]) < 2:
+if "messages" not in st.session_state or len(st.session_state["messages"]) < 1:
     st.session_state["messages"] = []
-    push(USER["role"], "")
     bot_reply()
 
 # print chat history
 if "started" in st.session_state:
-    for msg in st.session_state["messages"][1:]:
+    for msg in st.session_state["messages"]:
         reply(
             msg["role"],
             USER["avatar"] if msg["role"] == USER["role"] else BOT["avatar"],
