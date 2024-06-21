@@ -47,7 +47,7 @@ params = {
     "prompt": (
         "{prompt}\n\n{history}\n<|im_start|>{char}:"
         if IM_MODE
-        else "<s>{prompt}\n\n{history}\n{char}:"
+        else "{prompt}\n\n{history}\n{char}:"
     ),
     "repeat_last_n": 256,
     "repeat_penalty": 1.18,
@@ -80,9 +80,7 @@ def apply_chat_template(name: str, message: str) -> str:
     if IM_MODE:
         return f"<|im_start|>{name}: {message}<|im_end|>"
 
-    if name == USER["role"]:
-        return f"[INST] {name}: {message} [/INST]"
-    return f"{name}: {message} </s>"
+    return f"{name}: {message}"
 
 
 def chat(messages: list, setting: str) -> Generator[Any, None, None]:
