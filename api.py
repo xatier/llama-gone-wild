@@ -87,7 +87,7 @@ def chat(messages: list, setting: str) -> Generator[Any, None, None]:
     p = params.copy()
 
     history: str = "\n".join(
-        apply_chat_template(name=m["role"], message=m["content"])
+        apply_chat_template(name=m["actor"]["role"], message=m["content"])
         for m in messages
     )
 

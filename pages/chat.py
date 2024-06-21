@@ -18,17 +18,17 @@ server.character_card()
 
 
 def reply(
-    role: str, avatar: str, content: Union[str, Callable], stream: bool = False
+    actor: dict[str, str], content: Union[str, Callable], stream: bool = False
 ) -> None:
-    with st.chat_message(role, avatar=avatar):
+    with st.chat_message(actor["role"], avatar=actor["avatar"]):
         if stream:
             st.write_stream(content)
         else:
             st.write(content)
 
 
-def push(role: str, content: str) -> None:
-    st.session_state["messages"].append({"role": role, "content": content})
+def push(actor: dict[str, str], content: str) -> None:
+    st.session_state["messages"].append({"actor": actor, "content": content})
 
 
 def pop() -> None:
@@ -48,8 +48,8 @@ def generate_response() -> Generator[str, None, None]:
 
 def bot_reply() -> None:
     st.session_state["full_message"] = ""
-    reply(BOT["role"], BOT["avatar"], generate_response, stream=True)
-    push(BOT["role"], st.session_state["full_message"])
+    reply(BOT, generate_response, stream=True)
+    push(BOT, st.session_state["full_message"])
 
 
 # no history, or the bot hasn't finished the reply yet (due to page changes)
@@ -60,11 +60,7 @@ if "messages" not in st.session_state or len(st.session_state["messages"]) < 1:
 # print chat history
 if "started" in st.session_state:
     for msg in st.session_state["messages"]:
-        reply(
-            msg["role"],
-            USER["avatar"] if msg["role"] == USER["role"] else BOT["avatar"],
-            msg["content"],
-        )
+        reply(msg["actor"], msg["content"])
 
 st.session_state["started"] = True
 
@@ -80,8 +76,8 @@ st.session_state["started"] = True
 )
 
 if prompt := col1.chat_input(placeholder=f'{USER["avatar"]}: Your message'):
-    reply(USER["role"], USER["avatar"], prompt)
-    push(USER["role"], prompt)
+    reply(USER, prompt)
+    push(USER, prompt)
     bot_reply()
 
 if col2.button("💦", help="continue"):
