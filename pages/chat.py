@@ -49,7 +49,7 @@ def generate_response() -> Generator[str, None, None]:
 def bot_reply() -> None:
     st.session_state["full_message"] = ""
     reply(BOT, generate_response, stream=True)
-    push(BOT, st.session_state["full_message"])
+    push(BOT, st.session_state["full_message"].rstrip("\n"))
 
 
 # no history, or the bot hasn't finished the reply yet (due to page changes)
