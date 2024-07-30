@@ -25,7 +25,9 @@ BOT: dict[str, str] = {
     "role": char,
 }
 
-IM_MODE = False
+MODE = "default"
+# MODE = "IM"
+# MODE = "META"
 
 params = {
     "api_key": "",
@@ -46,12 +48,16 @@ params = {
     "presence_penalty": 0,
     "prompt": (
         "{prompt}\n\n{history}\n<|im_start|>{char}:"
-        if IM_MODE
-        else "{prompt}\n\n{history}\n{char}:"
+        if MODE == "IM"
+        else (
+            "{prompt}\n\n{history}\n<|start_header_id|>{char}:"
+            if MODE == "META"
+            else "{prompt}\n\n{history}\n{char}:"
+        )
     ),
     "repeat_last_n": 256,
     "repeat_penalty": 1.18,
-    "stop": ["</s>", f"{char}:", f"{user}:", "<|im_end|>"],
+    "stop": ["</s>", f"{char}:", f"{user}:", "<|im_end|>", "<|eot_id|>"],
     "stream": True,
     "temperature": 0.75,
     "tfs_z": 1,
@@ -77,8 +83,12 @@ def get_metrics() -> dict[str, Any]:
 
 # tokenizer.chat_template
 def apply_chat_template(name: str, message: str) -> str:
-    if IM_MODE:
+    if MODE == "IM":
         return f"<|im_start|>{name}: {message}<|im_end|>"
+    if MODE == "META":
+        return (
+            f"<|start_header_id|>{name}<|end_header_id|>: {message}<|eot_id|>"
+        )
 
     return f"{name}: {message}"
 
@@ -102,8 +112,26 @@ def chat(messages: list, setting: str) -> Generator[Any, None, None]:
         .replace("{{{CHARACTER}}}", setting)
         .replace("{{char}}", char)
         .replace("{{user}}", user)
-        .replace("[INST]", "<|im_start|>system\n\n" if IM_MODE else "[INST]")
-        .replace("[/INST]", "<|im_end|>" if IM_MODE else "[/INST]")
+        .replace(
+            "[INST]",
+            (
+                "<|im_start|>system\n\n"
+                if MODE == "IM"
+                else (
+                    "<|start_header_id|>system<|end_header_id|>\n\n"
+                    if MODE == "META"
+                    else "[INST]"
+                )
+            ),
+        )
+        .replace(
+            "[/INST]",
+            (
+                "<|im_end|>"
+                if MODE == "IM"
+                else "<|eot_id|>" if MODE == "META" else "[/INST]"
+            ),
+        )
     )
     p["prompt"] = p["prompt"].format(
         prompt=system_prompt, history=history, char=char
