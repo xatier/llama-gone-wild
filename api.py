@@ -29,6 +29,8 @@ MODE = "default"
 # MODE = "IM"
 # MODE = "META"
 
+N_PREDICT = 250
+
 params = {
     "api_key": "",
     "cache_prompt": True,
@@ -41,7 +43,7 @@ params = {
     "mirostat": 0,
     "mirostat_eta": 0.1,
     "mirostat_tau": 5,
-    "n_predict": 200,
+    "n_predict": N_PREDICT,
     "n_probs": 0,
     "n_keep": -1,
     "penalize_nl": True,
@@ -110,6 +112,7 @@ def chat(messages: list, setting: str) -> Generator[Any, None, None]:
     system_prompt: str = (
         load_system()
         .replace("{{{CHARACTER}}}", setting)
+        .replace("{{N_PREDICT}}", str(N_PREDICT))
         .replace("{{char}}", char)
         .replace("{{user}}", user)
         .replace(
