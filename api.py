@@ -79,6 +79,11 @@ def load_homebrew() -> str:
         return "".join(f.readlines())
 
 
+def load_autoreply() -> str:
+    with open(conf.AUTOREPLY) as f:
+        return "".join(f.readlines())
+
+
 def get_metrics() -> dict[str, Any]:
     return metrics
 
@@ -173,3 +178,65 @@ def chat(messages: list, setting: str) -> Generator[Any, None, None]:
                 pprint.pprint(metrics)
                 return
             yield partial
+
+
+def autoreply(messages: list) -> list[str]:
+    r1, r2, r3 = "Response 1:", "Response 2:", "Response 3:"
+
+    while True:
+        output = autoreply_gen(messages)
+        # regenerate if not getting the format we expect
+        if r1 in output and r2 in output and r3 in output:
+            break
+
+    return [
+        output[output.index(r1) + len(r1) : output.index(r2)].strip(),
+        output[output.index(r2) + len(r2) : output.index(r3)].strip(),
+        output[output.index(r3) + len(r3) :].strip(),
+    ]
+
+
+def autoreply_gen(messages: list) -> str:
+    p = params.copy()
+
+    history: str = "\n\n".join(
+        apply_chat_template(name=m["actor"]["role"], message=m["content"])
+        for m in messages
+    )
+
+    p["prompt"] = (
+        load_autoreply()
+        .replace("{{char}}", user)
+        .replace("{{history}}", history)
+    )
+    # allow larger window
+    p["n_predict"] = N_PREDICT * 2
+
+    with httpx.stream(
+        "POST", conf.API2, headers=headers, json=p, timeout=None
+    ) as r:
+        try:
+            r.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            e.response.read()
+            raise httpx.ResponseError(
+                e.response.text, e.response.status_code
+            ) from None
+
+        prefix = "data: "
+        output = ""
+
+        for line in r.iter_lines():
+            if not line.startswith(prefix):
+                continue
+
+            # trim prefix
+            line = line.removeprefix(prefix)
+            partial = json.loads(line)
+            if err := partial.get("error"):
+                raise httpx.ResponseError(err)
+            if partial.get("stop"):
+                break
+            output += partial["content"]
+
+    return output

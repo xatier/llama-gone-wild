@@ -93,9 +93,8 @@ if c is not None:
     character_card()
 
     if st.button("💦 Start Chat"):
-        if "messages" in st.session_state:
-            del st.session_state["messages"]
-        if "started" in st.session_state:
-            del st.session_state["started"]
+        for state in ("messages", "started", "autoreplies"):
+            if state in st.session_state:
+                del st.session_state[state]
         st.session_state["initialized"] = True
         st.switch_page("pages/chat.py")

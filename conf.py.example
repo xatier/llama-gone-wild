@@ -1,6 +1,8 @@
 API = "http://127.0.0.1:8000/completion"
+API2 = "http://127.0.0.1:8001/completion"
 DB_FILE = "/path/to/some/magic/json/file.json"
 HOMEBREW = False
 CUSTOMIZED = "/path/to/your/character-design.txt"
+AUTOREPLY = "/path/to/your/autoreply.txt"
 SITE = "https://some.magic.ai.chat.site"
 SYSTEM_PROMPT = "/path/to/your/system-prompt.txt"

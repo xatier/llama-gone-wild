@@ -50,11 +50,24 @@ def bot_reply() -> None:
     st.session_state["full_message"] = ""
     reply(BOT, generate_response, stream=True)
     push(BOT, st.session_state["full_message"].rstrip("\n"))
+    st.session_state["autoreplies"] = api.autoreply(
+        messages=st.session_state["messages"]
+    )
+
+    # reload the page to get a fresh print of history and buttons
+    st.rerun()
+
+
+def autoreply(selection: str) -> None:
+    reply(USER, selection)
+    push(USER, selection)
+    bot_reply()
 
 
 # no history, or the bot hasn't finished the reply yet (due to page changes)
 if "messages" not in st.session_state or len(st.session_state["messages"]) < 1:
     st.session_state["messages"] = []
+    st.session_state["autoreplies"] = []
     bot_reply()
 
 # print chat history
@@ -75,6 +88,14 @@ st.session_state["started"] = True
     [0.8, 0.1, 0.1]
 )
 
+
+if st.button(st.session_state["autoreplies"][0]):
+    autoreply(st.session_state["autoreplies"][0])
+if st.button(st.session_state["autoreplies"][1]):
+    autoreply(st.session_state["autoreplies"][1])
+if st.button(st.session_state["autoreplies"][2]):
+    autoreply(st.session_state["autoreplies"][2])
+
 if prompt := col1.chat_input(placeholder=f'{USER["avatar"]}: Your message'):
     reply(USER, prompt)
     push(USER, prompt)
@@ -86,8 +107,6 @@ if col2.button("💦", help="continue"):
 if col3.button("🔙", help="regenerate"):
     pop()
     bot_reply()
-    # reload the page to get a fresh print of history
-    st.rerun()
 
 
 metrics: dict[str, Any] = api.get_metrics()
