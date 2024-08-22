@@ -52,9 +52,9 @@ params = {
         "{prompt}\n\n{history}\n<|im_start|>{char}:"
         if MODE == "IM"
         else (
-            "{prompt}\n\n{history}\n<|start_header_id|>{char}:"
+            "{prompt}\n\n{history}\n\n<|start_header_id|>{char}:"
             if MODE == "META"
-            else "{prompt}\n\n{history}\n{char}:"
+            else "{prompt}\n\n{history}\n\n{char}:"
         )
     ),
     "repeat_last_n": 256,
@@ -98,7 +98,7 @@ def apply_chat_template(name: str, message: str) -> str:
 def chat(messages: list, setting: str) -> Generator[Any, None, None]:
     p = params.copy()
 
-    history: str = "\n".join(
+    history: str = "\n\n".join(
         apply_chat_template(name=m["actor"]["role"], message=m["content"])
         for m in messages
     )
