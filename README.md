@@ -35,3 +35,10 @@ character descriptions and scenarios
 fun chat
 
 ![3](images/3.png)
+
+screenshot with newly added features:
+
+- `continue` and `regenerate` buttons
+- automatic reply (branches)
+
+![4](images/4.png)
