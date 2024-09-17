@@ -186,7 +186,11 @@ def autoreply(messages: list) -> list[str]:
     while True:
         output = autoreply_gen(messages)
         # regenerate if not getting the format we expect
-        if r1 in output and r2 in output and r3 in output:
+        if (
+            output.count(r1) == 1
+            and output.count(r2) == 1
+            and output.count(r3) == 1
+        ):
             break
 
     return [
