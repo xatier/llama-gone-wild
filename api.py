@@ -3,7 +3,7 @@ import pprint
 from typing import Any, Generator
 
 import conf
-import httpx
+import httpx2
 
 
 headers: dict[str, str] = {
@@ -146,14 +146,14 @@ def chat(messages: list, setting: str) -> Generator[Any, None, None]:
     )
 
     # ref: ollama/ollama-python/ollama/_client.py
-    with httpx.stream(
+    with httpx2.stream(
         "POST", conf.API, headers=headers, json=p, timeout=None
     ) as r:
         try:
             r.raise_for_status()
-        except httpx.HTTPStatusError as e:
+        except httpx2.HTTPStatusError as e:
             e.response.read()
-            raise httpx.ResponseError(
+            raise httpx2.ResponseError(
                 e.response.text, e.response.status_code
             ) from None
 
@@ -165,7 +165,7 @@ def chat(messages: list, setting: str) -> Generator[Any, None, None]:
             line = line.removeprefix(prefix)
             partial = json.loads(line)
             if err := partial.get("error"):
-                raise httpx.ResponseError(err)
+                raise httpx2.ResponseError(err)
             if partial.get("stop"):
                 global metrics
                 metrics = {
@@ -216,14 +216,14 @@ def autoreply_gen(messages: list) -> str:
     # allow larger window
     p["n_predict"] = N_PREDICT * 2
 
-    with httpx.stream(
+    with httpx2.stream(
         "POST", conf.API2, headers=headers, json=p, timeout=None
     ) as r:
         try:
             r.raise_for_status()
-        except httpx.HTTPStatusError as e:
+        except httpx2.HTTPStatusError as e:
             e.response.read()
-            raise httpx.ResponseError(
+            raise httpx2.ResponseError(
                 e.response.text, e.response.status_code
             ) from None
 
@@ -238,7 +238,7 @@ def autoreply_gen(messages: list) -> str:
             line = line.removeprefix(prefix)
             partial = json.loads(line)
             if err := partial.get("error"):
-                raise httpx.ResponseError(err)
+                raise httpx2.ResponseError(err)
             if partial.get("stop"):
                 break
             output += partial["content"]
